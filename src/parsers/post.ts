@@ -5,11 +5,17 @@ export function parsePosts(input: Object, authors: Author[], tagName = 'item'): 
   if (!posts) {
     return [];
   }
+  const authorsLookup = authors
+    .reduce((merged, author) => {
+      merged[author.id] = author;
+      return merged;
+    }, {});
   return posts
     .reduce((merged, post) => {
       if (post['wp:post_type'] === 'post' && post['wp:status'] === 'publish') {
+        const author = post['dc:creator'];
         merged.push({
-          author: post['dc:creator'],
+          author: (authorsLookup[author] || { name: author }).name,
           content: post.content || post['content:encoded'],
           date: new Date(post.pubDate).toJSON(),
           link: post.link,
