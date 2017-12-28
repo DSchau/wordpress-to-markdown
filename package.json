@@ -1,0 +1,32 @@
+{
+  "name": "wordpress-to-markdown",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "author": "Dustin Schau <dustinschau@gmail.com> (https://dustinschau.com)",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc --project tsconfig.build.json",
+    "test": "npm run test:unit && npm run test:e2e",
+    "test:e2e": "jest --config e2e-tests/jest.config.js",
+    "test:unit": "jest --config jest.config.js"
+  },
+  "dependencies": {
+    "@types/xml2js": "~0.4.2",
+    "date-fns": "~1.29.0",
+    "mkdirp-promise": "~5.0.1",
+    "mz": "~2.7.0",
+    "pify": "~3.0.0",
+    "remark": "~8.0.0",
+    "slug": "~0.9.1",
+    "turndown": "~4.0.1",
+    "xml2js": "~0.4.19"
+  },
+  "devDependencies": {
+    "@types/jest": "~21.1.9",
+    "@types/node": "~8.5.2",
+    "jest": "~22.0.4",
+    "jest-preset-typescript": "~1.0.1",
+    "ts-jest": "~22.0.0",
+    "typescript": "~2.6.2"
+  }
+}
