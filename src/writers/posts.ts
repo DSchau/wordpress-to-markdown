@@ -10,7 +10,7 @@ import { Post } from '../interfaces';
 const template = (post: Post, toMarkdown): string => `
 ---
 author: ${post.author}
-title: ${post.title}
+title: "${post.title.replace(/["']/g, '')}"
 date: ${post.date}
 slug: ${post.slug}
 ---

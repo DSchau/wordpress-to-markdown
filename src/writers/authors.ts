@@ -10,7 +10,7 @@ const template = (author: Author): string => `
 ---
 name: ${author.name}
 title: Senior Consultant
-avatar: avatar.jpeg
+avatar: ../../assets/avatar.jpeg
 ---
 
 Insert witty bio here
