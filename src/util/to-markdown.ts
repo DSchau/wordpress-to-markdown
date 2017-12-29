@@ -7,6 +7,18 @@ const service = new Turndown({
   hr: '___'
 });
 
+service.addRule('code-fencing', {
+  filter: ['pre'],
+  replacement(content, node) {
+    if (content.match('\n')) {
+      const lang = node.getAttribute('lang');
+      return ['', '```' + (lang === null ? '' : lang), content.trim(), '```', '']
+        .join('\n');
+    }
+    return ['`', content, '\`'].join('');
+  }
+});
+
 // service.use(githubFlavoredMarkdown);
 
 export function isMarkdown(html: string): boolean {
@@ -17,7 +29,7 @@ export function isMarkdown(html: string): boolean {
 
 export function toMarkdown(html: string): string {
   if (!isMarkdown(html)) {
-    return service.turndown(html);
+    return service.turndown(html).trim();
   }
-  return html;
+  return html.trim();
 }
