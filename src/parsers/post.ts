@@ -16,7 +16,7 @@ export function parsePosts(input: Object, authors: Author[], tagName = 'item'): 
         const author = post['dc:creator'];
         merged.push({
           author: (authorsLookup[author] || { name: author }).name,
-          content: post.content || post['content:encoded'],
+          content: post.content || post['content:encoded'].replace(/\[\/?markdown\]/g, ''),
           date: new Date(post.pubDate).toJSON(),
           link: post.link,
           slug: post['wp:post_name'],

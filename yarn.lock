@@ -2857,6 +2857,10 @@ tunnel-agent@^0.6.0:
   dependencies:
     safe-buffer "^5.0.1"
 
+turndown-plugin-gfm@~1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/turndown-plugin-gfm/-/turndown-plugin-gfm-1.0.1.tgz#e981e2a5b18df288cb6745c37c47b3845ffa6b9d"
+
 turndown@~4.0.1:
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/turndown/-/turndown-4.0.1.tgz#1383dd01ac8d96fa106a7f13e0b0a7977588131a"

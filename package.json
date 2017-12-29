@@ -19,6 +19,7 @@
     "remark": "~8.0.0",
     "slug": "~0.9.1",
     "turndown": "~4.0.1",
+    "turndown-plugin-gfm": "~1.0.1",
     "xml2js": "~0.4.19"
   },
   "devDependencies": {

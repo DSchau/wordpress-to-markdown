@@ -10,14 +10,14 @@ const template = (author: Author): string => `
 ---
 name: ${author.name}
 title: Senior Consultant
-avatar: avatar.jpeg
+avatar: ../../assets/avatar.jpeg
 ---
 
 Insert witty bio here
 
 `.trim() + '\n';
 
-export async function writeAuthors(authors: Author[], basePath = 'output/persons') {
+export async function writeAuthors(authors: Author[], basePath = 'output/people') {
   const base = path.resolve(basePath);
   await mkdir(base);
 
