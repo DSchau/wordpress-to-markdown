@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@types/xml2js": "~0.4.2",
+    "axios": "^0.17.1",
     "date-fns": "~1.29.0",
     "mkdirp-promise": "~5.0.1",
     "mz": "~2.7.0",
