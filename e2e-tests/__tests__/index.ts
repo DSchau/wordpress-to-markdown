@@ -12,7 +12,7 @@ test('it can parse into JSON', async () => {
   const json = await parse(xml);
 });
 
-test('it can write authors', async () => {
+test('it can write authors/posts', async () => {
   jest.setTimeout(20000);
   await write(xml);
 });

@@ -37,20 +37,20 @@ export function isMarkdown(html: string): boolean {
 }
 
 export async function toMarkdown(html: string): Promise<string> {
+  let markdown = html.trim();
   if (!isMarkdown(html)) {
-    let markdown = service.turndown(html).trim();
-    if(hasAddjsLink(markdown)) {
-      const matches = markdown.match(/\[addjs src="\S*".*?\]/g);
-      if(!matches) {
-        return null;
-      }
-      for (let match of matches) {
-        markdown = markdown.replace(match, await addjsToCodeFence(match));
-      }
-    }
-    return markdown;
+    markdown = service.turndown(html).trim();
   }
-  return html.trim();
+  if(hasAddjsLink(markdown)) {
+    const matches = markdown.match(/\[addjs src="\S*".*?\]/g);
+    if(!matches) {
+      return null;
+    }
+    for (let match of matches) {
+      markdown = markdown.replace(match, await addjsToCodeFence(match));
+    }
+  }
+  return markdown;
 }
 
 const hasAddjsLink = (content: string) => {
@@ -59,9 +59,14 @@ const hasAddjsLink = (content: string) => {
 
 export const addjsToCodeFence = async (addjs: string) => {
   let contentUrl = addjs.replace('github', 'githubusercontent')
-      .replace('.js?file=', '/raw/')
+      .replace(/(\.[a-z]*\?file=)|\.js/, '/raw/')
   contentUrl = contentUrl.match(/src="(\S*)"/)[1];
-  const response = await axios.get(contentUrl);
+  let response = {};
+  try {
+    response = await axios.get(contentUrl);
+  } catch(e) {
+    console.log(`Failed to retrieve snippet for: ${contentUrl}`);
+  }
   return (
   `\`\`\`
     ${response.data}
