@@ -1,5 +1,6 @@
 import * as Turndown from 'turndown';
 import { gfm as githubFlavoredMarkdown } from 'turndown-plugin-gfm';
+import axios from 'axios';
 
 const service = new Turndown({
   bulletListMarker: '-',
@@ -35,9 +36,39 @@ export function isMarkdown(html: string): boolean {
   });
 }
 
-export function toMarkdown(html: string): string {
+export async function toMarkdown(html: string): Promise<string> {
+  let markdown = html.trim();
   if (!isMarkdown(html)) {
-    return service.turndown(html).trim();
+    markdown = service.turndown(html).trim();
   }
-  return html.trim();
+  if(hasAddjsLink(markdown)) {
+    const matches = markdown.match(/\[addjs src="\S*".*?\]/g);
+    if(!matches) {
+      return null;
+    }
+    for (let match of matches) {
+      markdown = markdown.replace(match, await addjsToCodeFence(match));
+    }
+  }
+  return markdown;
+}
+
+const hasAddjsLink = (content: string) => {
+  return /\[addjs/.test(content);
+}
+
+export const addjsToCodeFence = async (addjs: string) => {
+  let contentUrl = addjs.replace('github', 'githubusercontent')
+      .replace(/(\.[a-z]*\?file=)|\.js/, '/raw/')
+  contentUrl = contentUrl.match(/src="(\S*)"/)[1];
+  let response = {};
+  try {
+    response = await axios.get(contentUrl);
+  } catch(e) {
+    console.log(`Failed to retrieve snippet for: ${contentUrl}`);
+  }
+  return (
+  `\`\`\`
+    ${response.data}
+  \`\`\``);
 }

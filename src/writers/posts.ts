@@ -15,12 +15,13 @@ date: ${new Date(post.date).toJSON()}
 slug: ${post.slug}
 ---
 
-${toMarkdown(post.content)}
+${post.content}
 `.trim() + '\n';
 
 export async function writePost(post: Post, base: string): Promise<any> {
   const [day, month, year] = format(new Date(post.date), 'DD MM YYYY').split(' ');
   const folder = path.join(base, year, `${month}-${day}-${post.slug}`);
+  post.content = await toMarkdown(post.content);
   return mkdir(folder)
     .then(() => {
       return fs.writeFile(path.join(folder, 'index.md'), template(post), 'utf8');

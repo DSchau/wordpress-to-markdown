@@ -1,0 +1,29 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`pre translation to code fence addjs 1`] = `
+"\`\`\`
+    angular.module(‘example’)
+	.controller(‘ExampleCtrl’, function() {
+});
+  \`\`\`"
+`;
+
+exports[`pre translation to code fence it translates addjs links 1`] = `
+"Angular 1.x: \\\\\`\`\`
+    angular.module(‘example’)
+	.controller(‘ExampleCtrl’, function() {
+});
+  \`\`\` Angular 2.0: \\\\\`\`\`
+    import {Component, View} from 'angular2/angular2';
+
+@Component({
+  selector: 'example'
+})
+
+@View({
+  templateUrl: './components/example/example.html'
+})
+
+export class Example {}
+  \`\`\`"
+`;
