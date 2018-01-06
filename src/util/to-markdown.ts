@@ -60,11 +60,10 @@ const hasAddjsLink = (content: string) => {
 
 function getLanguage(src: string) {
   try {
-    let file = src;
     if (src.indexOf('?') > -1) {
-      file = qs.parse(src.split('?').pop()).file;
+      return qs.parse(src.split('?').pop()).file.split('.').pop();
     }
-    return file.split('.').pop();
+    return '';
   } catch (e) {
     return '';
   }
