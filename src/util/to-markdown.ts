@@ -17,7 +17,10 @@ service.addRule('code-fencing', {
     const trimmed = content ? content.trim() : '';
     if (trimmed.match('\n')) {
       const lang = node.getAttribute('lang');
-      return ['', '```' + (lang === null ? '' : lang), trimmed, '```', '']
+      return [
+        '',
+        lang === null ? '<!-- TODO: Add language to code block -->' : '',
+        '```' + (lang === null ? '' : lang), trimmed, '```', '']
         .join('\n');
     }
     return ['`', trimmed, '\`'].join('');
@@ -84,11 +87,15 @@ export const addjsToCodeFence = async (addjs: string): Promise<string> => {
     .replace(/\.js(\?file=)?/, '/raw/');
   try {
     const response = await axios.get(contentUrl);
+    const language = getLanguage(src);
     return [
-      '```' + getLanguage(src),
+      !language && '<!-- TODO: Add language to code block -->',
+      '```' + language,
       response.data,
       '```'
-    ].join('\n');
+    ]
+      .filter(value => value && value.length > 0)
+      .join('\n');
   } catch(e) {
     console.log(`Failed to retrieve snippet for: ${src} from raw ${contentUrl}`);
     return [
