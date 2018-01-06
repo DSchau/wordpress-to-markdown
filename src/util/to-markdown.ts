@@ -1,6 +1,7 @@
 import * as Turndown from 'turndown';
 import { gfm as githubFlavoredMarkdown } from 'turndown-plugin-gfm';
 import axios from 'axios';
+import * as qs from 'qs';
 
 const service = new Turndown({
   bulletListMarker: '-',
@@ -57,18 +58,42 @@ const hasAddjsLink = (content: string) => {
   return /\[addjs/.test(content);
 }
 
-export const addjsToCodeFence = async (addjs: string) => {
-  let contentUrl = addjs.replace('github', 'githubusercontent')
-      .replace(/(\.[a-z]*\?file=)|\.js/, '/raw/')
-  contentUrl = contentUrl.match(/src="(\S*)"/)[1];
-  let response = {};
+function getLanguage(src: string) {
   try {
-    response = await axios.get(contentUrl);
-  } catch(e) {
-    console.log(`Failed to retrieve snippet for: ${contentUrl}`);
+    if (src.indexOf('?') > -1) {
+      return qs.parse(src.split('?').pop()).file.split('.').pop();
+    }
+    return '';
+  } catch (e) {
+    return '';
   }
-  return (
-  `\`\`\`
-    ${response.data}
-  \`\`\``);
+}
+
+function getSrcFromAddJs(addjs: string) {
+  const src = addjs.match(/(?:src=")(.+)(?:")/);
+  if (src) {
+    return src.pop();
+  }
+  return '';
+}
+
+export const addjsToCodeFence = async (addjs: string): Promise<string> => {
+  const src = getSrcFromAddJs(addjs);
+  const contentUrl = src
+    .replace('github', 'githubusercontent')
+    .replace(/\.js(\?file=)?/, '/raw/');
+  try {
+    const response = await axios.get(contentUrl);
+    return [
+      '```' + getLanguage(src),
+      response.data,
+      '```'
+    ].join('\n');
+  } catch(e) {
+    console.log(`Failed to retrieve snippet for: ${src} from raw ${contentUrl}`);
+    return [
+      '<!-- TODO: Replace with code snippet manually pulled from Github -->',
+      `[Code](${src})`
+    ].join('\n');
+  }
 }
