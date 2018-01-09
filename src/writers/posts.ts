@@ -7,25 +7,39 @@ import { toMarkdown } from '../util';
 
 import { Post } from '../interfaces';
 
-const tags = (tags: string[]): string => {
-  if (!tags || tags.length === 0) {
+const replace = str => str.replace(/["]/g, '\"');
+
+const writeArr = (arr: string[], key = 'tags', spaces = 2): string => {
+  if (!arr || arr.length === 0) {
     return '';
   }
   return `
-tags:
-${tags.map(tag => `  - ${tag}`).join('\n')}
+${key}:
+${arr.map(tag => `${new Array(spaces + 1).join(' ')}- ${tag}`).join('\n')}
   `.trim();
 };
 
-const template = (post: Post): string => `
----
+const metadata = (post: Post): string => {
+  return `
 ${`
 author: ${post.author}
-title: "${post.title.replace(/["']/g, '')}"
+title: "${replace(post.title)}"
 date: ${new Date(post.date).toJSON()}
 slug: ${post.slug}
-${tags(post.tags)}
-`.trim()}
+${writeArr(post.tags)}
+${post.meta ? `
+meta:
+  description: "${replace(post.meta.description || post.title)}"
+  title: "${replace(post.meta.title || post.title)}"
+  ${writeArr(post.meta.keywords, 'keywords', 4)}
+` : ''}
+`}
+  `.trim().replace(/\n+/g, '\n');
+}
+
+const template = (post: Post): string => `
+---
+${metadata(post)}
 ---
 
 ${post.content}
