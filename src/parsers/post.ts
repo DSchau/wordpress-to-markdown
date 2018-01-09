@@ -14,7 +14,7 @@ export function parsePosts(input: Object, authors: Author[], tagName = 'item'): 
       return merged;
     }, {
       admin: {
-        name: 'objectpartners'
+        name: 'Object Partners'
       },
       jbaso: {
         name: 'Jon Baso'
