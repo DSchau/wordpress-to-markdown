@@ -7,7 +7,7 @@ import { toMarkdown } from '../util';
 
 import { Post } from '../interfaces';
 
-const replace = str => str.replace(/["]/g, '\"');
+const replace = str => str.replace(/["']/g, '').trim();
 
 const writeArr = (arr: string[], key = 'tags', spaces = 2): string => {
   if (!arr || arr.length === 0) {
@@ -15,7 +15,8 @@ const writeArr = (arr: string[], key = 'tags', spaces = 2): string => {
   }
   return `
 ${key}:
-${arr.map(tag => `${new Array(spaces + 1).join(' ')}- ${tag}`).join('\n')}
+${arr
+  .map(tag => `${new Array(spaces).join(' ')} - "${replace(tag)}"`).join('\n')}
   `.trim();
 };
 
@@ -30,8 +31,7 @@ ${writeArr(post.tags)}
 ${post.meta ? `
 meta:
   description: "${replace(post.meta.description || post.title)}"
-  title: "${replace(post.meta.title || post.title)}"
-  ${writeArr(post.meta.keywords, 'keywords', 4)}
+  ${writeArr(post.meta.keywords || [], 'keywords', 4)}
 ` : ''}
 `}
   `.trim().replace(/\n+/g, '\n');
