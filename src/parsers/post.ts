@@ -9,7 +9,10 @@ export function parsePosts(input: Object, authors: Author[], tagName = 'item'): 
     .reduce((merged, author) => {
       merged[author.id] = author;
       return merged;
-    }, {});
+    }, {
+      admin: 'objectpartners',
+      jbaso: 'jbaso'
+    });
   return posts
     .reduce((merged, post) => {
       if (post['wp:post_type'] === 'post' && post['wp:status'] === 'publish') {
