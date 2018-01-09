@@ -14,12 +14,16 @@ export function parsePosts(input: Object, authors: Author[], tagName = 'item'): 
     .reduce((merged, post) => {
       if (post['wp:post_type'] === 'post' && post['wp:status'] === 'publish') {
         const author = post['dc:creator'];
+        const tags = new Set([].concat(post.category || [])
+          .map(tag => (tag.$.nicename || '').toLowerCase())
+          .filter(tag => tag && tag !== 'blog'));
         merged.push({
           author: (authorsLookup[author] || { name: author }).name,
           content: post.content || post['content:encoded'].replace(/\[\/?markdown\]/g, ''),
           date: new Date(post.pubDate).toJSON(),
           link: post.link,
           slug: post['wp:post_name'],
+          tags: Array.from(tags),
           title: post.title
         });
       }

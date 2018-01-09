@@ -5,4 +5,5 @@ export interface Post {
   link?: string; // link
   slug: string; // wp:post_name
   title: string; // title
+  tags: string[];
 }

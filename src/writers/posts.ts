@@ -7,12 +7,25 @@ import { toMarkdown } from '../util';
 
 import { Post } from '../interfaces';
 
+const tags = (tags: string[]): string => {
+  if (!tags || tags.length === 0) {
+    return '';
+  }
+  return `
+tags:
+${tags.map(tag => `  - ${tag}`).join('\n')}
+  `.trim();
+};
+
 const template = (post: Post): string => `
 ---
+${`
 author: ${post.author}
 title: "${post.title.replace(/["']/g, '')}"
 date: ${new Date(post.date).toJSON()}
 slug: ${post.slug}
+${tags(post.tags)}
+`.trim()}
 ---
 
 ${post.content}
