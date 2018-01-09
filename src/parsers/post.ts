@@ -7,11 +7,18 @@ export function parsePosts(input: Object, authors: Author[], tagName = 'item'): 
   }
   const authorsLookup = authors
     .reduce((merged, author) => {
-      merged[author.id] = author;
+      merged[author.id] = {
+        ...author,
+        ...(merged[author.id] || {}),
+      };
       return merged;
     }, {
-      admin: 'objectpartners',
-      jbaso: 'jbaso'
+      admin: {
+        name: 'objectpartners'
+      },
+      jbaso: {
+        name: 'Jon Baso'
+      }
     });
   return posts
     .reduce((merged, post) => {
@@ -21,7 +28,7 @@ export function parsePosts(input: Object, authors: Author[], tagName = 'item'): 
           .map(tag => (tag.$.nicename || '').toLowerCase())
           .filter(tag => tag && tag !== 'blog'));
         merged.push({
-          author: (authorsLookup[author] || { name: author }).name,
+          author: (authorsLookup[author] || { [name]: author }).name,
           content: post.content || post['content:encoded'].replace(/\[\/?markdown\]/g, ''),
           date: new Date(post.pubDate).toJSON(),
           link: post.link,
