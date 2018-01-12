@@ -12,7 +12,9 @@ export function parsePosts(input: Object, authors: Author[], tagName = 'item'): 
     }, {});
   return posts
     .reduce((merged, post) => {
-      if (post['wp:post_type'] === 'post' && post['wp:status'] === 'publish') {
+      const isBlogPost = [].concat(post.category)
+        .some(category => category && category._ === 'Blog');
+      if (post['wp:post_type'] === 'post' && post['wp:status'] === 'publish' && isBlogPost) {
         const author = post['dc:creator'];
         const tags = new Set([].concat(post.category || [])
           .map(tag => (tag.$.nicename || '').toLowerCase())
