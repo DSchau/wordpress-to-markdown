@@ -30,12 +30,14 @@ const CATEGORY_MAP = {
   terraform: CATEGORIES.devops
 }
 
-function getCategory(tags: Set<string>): string {
+function getCategory(tags: Set<string>, title: string): string {
   if (tags.size === 0) {
     return 'Unknown';
   }
 
-  const category = Object.keys(CATEGORY_MAP).find(category => tags.has(category));
+  const titleWords = new Set(title.split(' ').map(word => word.toLowerCase()));
+
+  const category = Object.keys(CATEGORY_MAP).find(category => tags.has(category)) || Object.keys(CATEGORY_MAP).find(category => titleWords.has(category));
 
   if (category) {
     return CATEGORY_MAP[category];
@@ -93,7 +95,7 @@ export function parsePosts(input: Object, authors: Author[], tagName = 'item'): 
           }, {});
         merged.push({
           author: (authorsLookup[author] || { name: author }).name,
-          category: getCategory(tags),
+          category: getCategory(tags, post.title),
           content: post.content || post['content:encoded'].replace(/\[\/?markdown\]/g, ''),
           date: new Date(post.pubDate).toJSON(),
           link: post.link,
