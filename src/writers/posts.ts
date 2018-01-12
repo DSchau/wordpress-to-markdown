@@ -23,6 +23,7 @@ ${`
 author: ${post.author}
 title: "${post.title.replace(/["']/g, '')}"
 date: ${new Date(post.date).toJSON()}
+category: ${post.category}
 slug: ${post.slug}
 ${tags(post.tags)}
 `.trim()}

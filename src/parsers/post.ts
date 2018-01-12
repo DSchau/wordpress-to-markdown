@@ -1,7 +1,7 @@
 import { Author, Post } from '../interfaces';
 
 const CATEGORIES = {
-  java: 'Java',
+  java: 'JVM',
   javascript: 'JavaScript',
   devops: 'Devops',
   mobile: 'Mobile'
@@ -30,7 +30,7 @@ const CATEGORY_MAP = {
   terraform: CATEGORIES.devops
 }
 
-function getCategory(tags: Set<string>) {
+function getCategory(tags: Set<string>): string {
   if (tags.size === 0) {
     return 'Unknown';
   }
@@ -65,6 +65,7 @@ export function parsePosts(input: Object, authors: Author[], tagName = 'item'): 
           .filter(tag => tag && tag !== 'blog'));
         merged.push({
           author: (authorsLookup[author] || { name: author }).name,
+          category: getCategory(tags),
           content: post.content || post['content:encoded'].replace(/\[\/?markdown\]/g, ''),
           date: new Date(post.pubDate).toJSON(),
           link: post.link,
