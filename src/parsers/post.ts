@@ -51,9 +51,19 @@ export function parsePosts(input: Object, authors: Author[], tagName = 'item'): 
   }
   const authorsLookup = authors
     .reduce((merged, author) => {
-      merged[author.id] = author;
+      merged[author.id] = {
+        ...author,
+        ...(merged[author.id] || {}),
+      };
       return merged;
-    }, {});
+    }, {
+      admin: {
+        name: 'Object Partners'
+      },
+      jbaso: {
+        name: 'Jon Baso'
+      }
+    });
   return posts
     .reduce((merged, post) => {
       const isBlogPost = [].concat(post.category)
@@ -63,6 +73,24 @@ export function parsePosts(input: Object, authors: Author[], tagName = 'item'): 
         const tags = new Set([].concat(post.category || [])
           .map(tag => (tag.$.nicename || '').toLowerCase())
           .filter(tag => tag && tag !== 'blog'));
+        const meta = [].concat(post['wp:postmeta'] || [])
+          .reduce((merged, tag) => {
+            const value = tag['wp:meta_value'];
+            switch (tag['wp:meta_key']) {
+              case '_aioseop_description':
+                merged.description = value;
+                break;
+              case '_aioseop_title':
+                merged.title = value;
+                break;
+              case '_aioseop_keywords':
+                merged.keywords = value.split(/\s*,\s*/);
+                break;
+              default:
+                break;
+            }
+            return merged;
+          }, {});
         merged.push({
           author: (authorsLookup[author] || { name: author }).name,
           category: getCategory(tags),
@@ -71,7 +99,8 @@ export function parsePosts(input: Object, authors: Author[], tagName = 'item'): 
           link: post.link,
           slug: post['wp:post_name'],
           tags: Array.from(tags),
-          title: post.title
+          title: post.title,
+          ...(meta && Object.keys(meta).length > 0 ? { meta } : {})
         });
       }
       return merged;

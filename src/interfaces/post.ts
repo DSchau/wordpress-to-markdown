@@ -1,3 +1,9 @@
+export interface Meta {
+  description: string;
+  keywords: string[];
+  title: string;
+}
+
 export interface Post {
   author: string; // dc:creator
   category: string;
@@ -7,4 +13,5 @@ export interface Post {
   slug: string; // wp:post_name
   title: string; // title
   tags: string[];
+  meta?: Partial<Meta>;
 }
