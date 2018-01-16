@@ -48,12 +48,9 @@ ${post.content}
 
 export async function writePost(post: Post, base: string): Promise<any> {
   const [day, month, year] = format(new Date(post.date), 'DD MM YYYY').split(' ');
-  const folder = path.join(base, year, `${month}-${day}-${post.slug}`);
+  const filePath = path.join(base, `${year}-${month}-${day}-${post.slug}.md`);
   post.content = await toMarkdown(post.content);
-  return mkdir(folder)
-    .then(() => {
-      return fs.writeFile(path.join(folder, 'index.md'), template(post), 'utf8');
-    });
+  return fs.writeFile(filePath, template(post), 'utf8');
 }
 
 export async function writePosts(posts: Post[], basePath = 'output/posts') {
