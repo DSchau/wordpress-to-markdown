@@ -4,7 +4,8 @@ const CATEGORIES = {
   java: 'JVM',
   javascript: 'JavaScript',
   devops: 'Devops',
-  mobile: 'Mobile'
+  mobile: 'Mobile',
+  company: 'Company'
 }
 
 const CATEGORY_MAP = {
@@ -14,20 +15,27 @@ const CATEGORY_MAP = {
   jquery: CATEGORIES.javascript,
   node: CATEGORIES.javascript,
   nodejs: CATEGORIES.javascript,
+  vue: CATEGORIES.javascript,
+  npm: CATEGORIES.javascript,
   java: CATEGORIES.java,
   mobile: CATEGORIES.mobile,
   android: CATEGORIES.mobile,
+  cordova: CATEGORIES.mobile,
   ios: CATEGORIES.mobile,
   xcode: CATEGORIES.mobile,
   devops: CATEGORIES.devops,
   gradle: CATEGORIES.java,
   spring: CATEGORIES.java,
   groovy: CATEGORIES.java,
+  grails: CATEGORIES.java,
   'spring-boot': CATEGORIES.java,
   kotlin: CATEGORIES.java,
   tomcat: CATEGORIES.java,
   docker: CATEGORIES.devops,
-  terraform: CATEGORIES.devops
+  jenkins: CATEGORIES.devops,
+  terraform: CATEGORIES.devops,
+  holiday: CATEGORIES.company,
+  house: CATEGORIES.company
 }
 
 function getCategory(tags: Set<string>, title: string): string {
@@ -37,7 +45,9 @@ function getCategory(tags: Set<string>, title: string): string {
 
   const titleWords = new Set(title.split(' ').map(word => word.toLowerCase()));
 
-  const category = Object.keys(CATEGORY_MAP).find(category => tags.has(category)) || Object.keys(CATEGORY_MAP).find(category => titleWords.has(category));
+  const findCategory = (set: Set<string>): string | null => Object.keys(CATEGORY_MAP).find(category => set.has(category));
+
+  const category = findCategory(tags) || findCategory(titleWords);
 
   if (category) {
     return CATEGORY_MAP[category];
