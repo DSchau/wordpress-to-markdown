@@ -10,17 +10,22 @@ const service = new Turndown({
   hr: '___'
 });
 
+const escape = str => str
+  .replace(/\\([-_`\[\]])/g, '$1');
+
 // TODO: it seems like code blocks may be unescaped improperly
 service.addRule('code-fencing', {
   filter: ['pre'],
   replacement(content, node) {
-    const trimmed = content ? content.trim() : '';
+    const trimmed = escape(content ? content.trim() : '');
     if (trimmed.match('\n')) {
       const lang = node.getAttribute('lang');
       return [
         '',
         lang === null ? '<!-- TODO: Add language to code block -->' : '',
-        '```' + (lang === null ? '' : lang), trimmed, '```', '']
+        '```' + (lang === null ? '' : lang), trimmed, '```',
+        ''
+      ]
         .join('\n');
     }
     return ['`', trimmed, '\`'].join('');
@@ -46,9 +51,11 @@ export async function toMarkdown(html: string): Promise<string> {
     markdown = service.turndown(html).trim();
   }
   if(hasAddjsLink(markdown)) {
-    const matches = markdown.match(/\[addjs src="\S*".*?\]/g);
+    const matches = markdown.match(/(\\)?\[addjs\s*src="[^"\\]+(["\\\]]+)?/g);
     if(!matches) {
       return null;
+    }
+    if (markdown.indexOf('Recently I had the opportunity to rewrite an existing Spring Boot application as a Ratpack application') > -1) {
     }
     for (let match of matches) {
       markdown = markdown.replace(match, await addjsToCodeFence(match));
@@ -73,9 +80,9 @@ function getLanguage(src: string) {
 }
 
 function getSrcFromAddJs(addjs: string) {
-  const src = addjs.match(/(?:src=")(.+)(?:")/);
+  const src = addjs.split('src=');
   if (src) {
-    return src.pop();
+    return src.pop().replace(/["\\\]]/g, '').trim();
   }
   return '';
 }
@@ -88,19 +95,21 @@ export const addjsToCodeFence = async (addjs: string): Promise<string> => {
   try {
     const response = await axios.get(contentUrl);
     const language = getLanguage(src);
-    return [
+    return '\n' + [
+      '',
       !language && '<!-- TODO: Add language to code block -->',
       '```' + language,
       response.data,
-      '```'
+      '```',
+      ''
     ]
-      .filter(value => value && value.length > 0)
-      .join('\n');
+      .join('\n') + '\n';
   } catch(e) {
-    console.log(`Failed to retrieve snippet for: ${src} from raw ${contentUrl}`);
     return [
+      '',
       '<!-- TODO: Replace with code snippet manually pulled from Github -->',
-      `[Code](${src})`
-    ].join('\n');
+      `[Code](${src})`,
+      ''
+    ].join('\n\n');
   }
 }
