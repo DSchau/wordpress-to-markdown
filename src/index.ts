@@ -20,7 +20,7 @@ export async function parse(input: string): Promise<any> {
   const base = parsed.rss.channel;
 
   const authors = parseAuthors(base);
-  const posts = parsePosts(base, authors);
+  const posts = await parsePosts(base, authors);
 
   return {
     authors,

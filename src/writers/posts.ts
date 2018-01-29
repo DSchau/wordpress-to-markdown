@@ -2,9 +2,10 @@ import * as path from 'path';
 import * as fs from 'mz/fs';
 import * as mkdir from 'mkdirp-promise';
 import * as format from 'date-fns/format';
+import axios from 'axios';
+import * as globby from 'globby';
 
-import { toMarkdown } from '../util';
-
+import { WORDPRESS_UPLOAD_PATH } from '../constants';
 import { Post } from '../interfaces';
 
 const replace = str => str.replace(/["']/g, '').trim();
@@ -43,23 +44,59 @@ const template = (post: Post): string => `
 ${metadata(post)}
 ---
 
-${post.content}
+${post.markdown}
 `.trim() + '\n';
 
 export async function writePost(post: Post, base: string): Promise<any> {
   const [day, month, year] = format(new Date(post.date), 'DD MM YYYY').split(' ');
   const filePath = path.join(base, `${year}-${month}-${day}-${post.slug}.md`);
-  post.content = await toMarkdown(post.content);
   return fs.writeFile(filePath, template(post), 'utf8');
 }
 
-export async function writePosts(posts: Post[], basePath = 'output/posts') {
-  const base = path.resolve(basePath);
+export async function writeImages(posts: Post[], base: string): Promise<any> {
+  const imageBase = path.join(base, 'images');
+  const cached = await globby(imageBase)
+    .then(files => files.reduce((fileObj, file) => {
+      const fileName = file.split(imageBase).pop().slice(1);
+      fileObj[fileName] = true;
+      return fileObj;
+    }, {}));
 
-  await mkdir(base);
+  return await Promise.all(
+    posts.map(({ images }) => {
+      const nonCachedImages = images
+        .filter(image => !cached[image]);
+
+      return Promise.all(
+        nonCachedImages
+          .map(image => {
+            const url = `${WORDPRESS_UPLOAD_PATH}${image}`;
+            const dest = path.join(imageBase, image.split('/').slice(0, -1).join('/'));
+            return mkdir(dest)
+              .then(() => {
+                return axios.get(url, { responseType: 'arraybuffer' })
+                  .then(response => {
+                    return fs.writeFile(path.join(imageBase, image), response.data, 'binary');
+                  })
+              });
+          })
+      );
+    })
+  );
+}
+
+export async function writePosts(posts: Post[], basePath = 'output') {
+  const base = path.resolve(basePath);
+  const postsBase = path.join(base, 'posts');
+
+  await mkdir(postsBase);
+
+  await writeImages(posts, base);
+
+  console.log('Wrote all images');
 
   await Promise.all(
     posts
-      .map(post => writePost(post, base))
+      .map(post => writePost(post, postsBase))
   );
 }

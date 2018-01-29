@@ -1,38 +1,15 @@
-import * as Turndown from 'turndown';
-import { gfm as githubFlavoredMarkdown } from 'turndown-plugin-gfm';
 import axios from 'axios';
 import * as qs from 'qs';
+import * as Remark from 'remark';
+import * as map from 'unist-util-map';
 
-const service = new Turndown({
-  bulletListMarker: '-',
-  codeBlockStyle: 'fenced',
-  headingStyle: 'atx',
-  hr: '___'
-});
+import { turndown } from './turndown';
+import { WORDPRESS_UPLOAD_PATH } from '../constants';
 
-const escape = str => str
-  .replace(/\\([-_`\[\]])/g, '$1');
-
-// TODO: it seems like code blocks may be unescaped improperly
-service.addRule('code-fencing', {
-  filter: ['pre'],
-  replacement(content, node) {
-    const trimmed = escape(content ? content.trim() : '');
-    if (trimmed.match('\n')) {
-      const lang = node.getAttribute('lang');
-      return [
-        '',
-        lang === null ? '<!-- TODO: Add language to code block -->' : '',
-        '```' + (lang === null ? '' : lang), trimmed, '```',
-        ''
-      ]
-        .join('\n');
-    }
-    return ['`', trimmed, '\`'].join('');
-  }
-});
-
-service.use(githubFlavoredMarkdown);
+export interface MarkdownResult {
+  markdown: string;
+  images: string[];
+}
 
 /*
  * This is a pretty naive approach of detecting markdown
@@ -45,23 +22,32 @@ export function isMarkdown(html: string): boolean {
   });
 }
 
-export async function toMarkdown(html: string): Promise<string> {
-  let markdown = html.trim();
-  if (!isMarkdown(html)) {
-    markdown = service.turndown(html).trim();
-  }
+export async function toMarkdown(html: string): Promise<MarkdownResult> {
+  let markdown = turndown.turndown(html.trim()).trim();
   if(hasAddjsLink(markdown)) {
-    const matches = markdown.match(/(\\)?\[addjs\s*src="[^"\\]+(["\\\]]+)?/g);
-    if(!matches) {
-      return null;
-    }
-    if (markdown.indexOf('Recently I had the opportunity to rewrite an existing Spring Boot application as a Ratpack application') > -1) {
-    }
+    const matches = markdown.match(/(\\)?\[addjs\s*src="[^"\\]+(["\\\]]+)?/g) || [];
     for (let match of matches) {
       markdown = markdown.replace(match, await addjsToCodeFence(match));
     }
   }
-  return markdown;
+
+  const remark = new Remark().data(`settings`, {
+    commonmark: true,
+    footnotes: true,
+    pedantic: true,
+  });
+
+  let images = [];
+  const ast = map(remark.parse(markdown), node => {
+    if (node.type === 'image' && node.url.indexOf(WORDPRESS_UPLOAD_PATH) > -1) {
+      const imagePath = node.url.split(WORDPRESS_UPLOAD_PATH).pop();
+      node.url = `/static/images/${imagePath}`;
+      images.push(imagePath);
+    }
+    return node;
+  });
+
+  return { markdown: remark.stringify(ast), images };
 }
 
 const hasAddjsLink = (content: string) => {

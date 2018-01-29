@@ -1,3 +1,5 @@
+import { toMarkdown } from '../util/to-markdown';
+
 import { Author, Post } from '../interfaces';
 
 const CATEGORIES = {
@@ -12,11 +14,15 @@ const CATEGORY_MAP = {
   javascript: CATEGORIES.javascript,
   react: CATEGORIES.javascript,
   angular: CATEGORIES.javascript,
+  angularjs: CATEGORIES.javascript,
   jquery: CATEGORIES.javascript,
   node: CATEGORIES.javascript,
   nodejs: CATEGORIES.javascript,
   vue: CATEGORIES.javascript,
   npm: CATEGORIES.javascript,
+  web: CATEGORIES.javascript,
+  css: CATEGORIES.javascript,
+  reactjs: CATEGORIES.javascript,
   java: CATEGORIES.java,
   mobile: CATEGORIES.mobile,
   android: CATEGORIES.mobile,
@@ -28,35 +34,47 @@ const CATEGORY_MAP = {
   spring: CATEGORIES.java,
   groovy: CATEGORIES.java,
   grails: CATEGORIES.java,
+  eclipse: CATEGORIES.java,
+  spock: CATEGORIES.java,
+  ratpack: CATEGORIES.java,
   'spring-boot': CATEGORIES.java,
   kotlin: CATEGORIES.java,
   tomcat: CATEGORIES.java,
+  mockito: CATEGORIES.java,
+  junit: CATEGORIES.java,
+  mave: CATEGORIES.java,
   docker: CATEGORIES.devops,
   jenkins: CATEGORIES.devops,
   terraform: CATEGORIES.devops,
+  lambda: CATEGORIES.devops,
+  s3: CATEGORIES.devops,
   holiday: CATEGORIES.company,
-  house: CATEGORIES.company
+  house: CATEGORIES.company,
+  'partners': CATEGORIES.company
 }
 
 function getCategory(tags: Set<string>, title: string): string {
-  if (tags.size === 0) {
-    return 'Unknown';
-  }
-
   const titleWords = new Set(title.split(' ').map(word => word.toLowerCase()));
 
-  const findCategory = (set: Set<string>): string | null => Object.keys(CATEGORY_MAP).find(category => set.has(category));
+  const findCategory = (set: Set<string>): string | null => Object.keys(CATEGORY_MAP).find(category => {
+    if (set.has(category)) {
+      return true;
+    }
+    return Array.from(set).some(val => {
+      return new Set(val.split(/[-\s]/)).has(category);
+    })
+  });
 
   const category = findCategory(tags) || findCategory(titleWords);
 
   if (category) {
     return CATEGORY_MAP[category];
   }
-  
+
   return 'Unknown';
 }
 
-export function parsePosts(input: Object, authors: Author[], tagName = 'item'): Post[] {
+export async function parsePosts(input: Object, authors: Author[], tagName = 'item'): Promise<Post[]> {
   const posts = input[tagName];
   if (!posts) {
     return [];
@@ -76,8 +94,10 @@ export function parsePosts(input: Object, authors: Author[], tagName = 'item'): 
         name: 'Jon Baso'
       }
     });
-  return posts
-    .reduce((merged, post) => {
+  let merged = [];
+
+  await Promise.all(
+    posts.map(async post => {
       const isBlogPost = [].concat(post.category)
         .some(category => category && category._ === 'Blog');
       if (post['wp:post_type'] === 'post' && post['wp:status'] === 'publish' && isBlogPost) {
@@ -103,11 +123,20 @@ export function parsePosts(input: Object, authors: Author[], tagName = 'item'): 
             }
             return merged;
           }, {});
+
+
+        const raw = post.content || post['content:encoded'].replace(/\[\/?markdown\]/g, '');
+        const { markdown, images } = await toMarkdown(raw);
+
+        // console.log(`${post.title} -> ${post.title}.markdown`);
+
         merged.push({
           author: (authorsLookup[author] || { name: author }).name,
           category: getCategory(tags, post.title),
-          content: post.content || post['content:encoded'].replace(/\[\/?markdown\]/g, ''),
-          date: new Date(post.pubDate).toJSON(),
+          raw,
+          markdown,
+          images,
+          date: new Date(post.pubDate).toISOString(),
           link: post.link,
           slug: post['wp:post_name'],
           tags: Array.from(tags),
@@ -115,6 +144,8 @@ export function parsePosts(input: Object, authors: Author[], tagName = 'item'): 
           ...(meta && Object.keys(meta).length > 0 ? { meta } : {})
         });
       }
-      return merged;
-    }, []);
+    })
+  )
+
+  return merged;
 }
