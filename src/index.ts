@@ -20,12 +20,12 @@ export async function parse(input: string): Promise<any> {
   const base = parsed.rss.channel;
 
   const authors = parseAuthors(base);
-  // const posts = await parsePosts(base, authors);
+  const posts = await parsePosts(base, authors);
   const presentations = await parsePresentations(base, authors);
 
   return {
     authors,
-    // posts,
+    posts,
     presentations,
   };
 }
@@ -34,8 +34,8 @@ export async function write(input: string): Promise<any> {
   const { authors, posts, presentations } = await parse(input);
 
   await Promise.all([
-    // writeAuthors(authors),
-    // writePosts(posts),
+    writeAuthors(authors),
+    writePosts(posts),
     writePresentations(presentations),
   ]);
 }
