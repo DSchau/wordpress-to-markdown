@@ -1,5 +1,6 @@
 import { toMarkdown } from '../util/to-markdown';
 
+import { getMeta, getTags } from '../util/';
 import { Author, Post } from '../interfaces';
 
 const CATEGORIES = {
@@ -7,8 +8,8 @@ const CATEGORIES = {
   javascript: 'JavaScript',
   devops: 'Devops',
   mobile: 'Mobile',
-  company: 'Company'
-}
+  company: 'Company',
+};
 
 const CATEGORY_MAP = {
   javascript: CATEGORIES.javascript,
@@ -50,20 +51,21 @@ const CATEGORY_MAP = {
   s3: CATEGORIES.devops,
   holiday: CATEGORIES.company,
   house: CATEGORIES.company,
-  'partners': CATEGORIES.company
-}
+  partners: CATEGORIES.company,
+};
 
 function getCategory(tags: Set<string>, title: string): string {
   const titleWords = new Set(title.split(' ').map(word => word.toLowerCase()));
 
-  const findCategory = (set: Set<string>): string | null => Object.keys(CATEGORY_MAP).find(category => {
-    if (set.has(category)) {
-      return true;
-    }
-    return Array.from(set).some(val => {
-      return new Set(val.split(/[-\s]/)).has(category);
-    })
-  });
+  const findCategory = (set: Set<string>): string | null =>
+    Object.keys(CATEGORY_MAP).find(category => {
+      if (set.has(category)) {
+        return true;
+      }
+      return Array.from(set).some(val => {
+        return new Set(val.split(/[-\s]/)).has(category);
+      });
+    });
 
   const category = findCategory(tags) || findCategory(titleWords);
 
@@ -74,61 +76,52 @@ function getCategory(tags: Set<string>, title: string): string {
   return 'Unknown';
 }
 
-export async function parsePosts(input: Object, authors: Author[], tagName = 'item'): Promise<Post[]> {
+export async function parsePosts(
+  input: Object,
+  authors: Author[],
+  tagName = 'item'
+): Promise<Post[]> {
   const posts = input[tagName];
   if (!posts) {
     return [];
   }
-  const authorsLookup = authors
-    .reduce((merged, author) => {
+  const authorsLookup = authors.reduce(
+    (merged, author) => {
       merged[author.id] = {
         ...author,
         ...(merged[author.id] || {}),
       };
       return merged;
-    }, {
+    },
+    {
       admin: {
-        name: 'Object Partners'
+        name: 'Object Partners',
       },
       jbaso: {
-        name: 'Jon Baso'
-      }
-    });
+        name: 'Jon Baso',
+      },
+    }
+  );
   let merged = [];
 
   await Promise.all(
     posts.map(async post => {
-      const isBlogPost = [].concat(post.category)
+      const isBlogPost = []
+        .concat(post.category)
         .some(category => category && category._ === 'Blog');
-      if (post['wp:post_type'] === 'post' && post['wp:status'] === 'publish' && isBlogPost) {
+      if (
+        post['wp:post_type'] === 'post' &&
+        post['wp:status'] === 'publish' &&
+        isBlogPost
+      ) {
         const author = post['dc:creator'];
-        const tags = new Set([].concat(post.category || [])
-          .map(tag => (tag.$.nicename || '').toLowerCase())
-          .filter(tag => tag && tag !== 'blog'));
-        const meta = [].concat(post['wp:postmeta'] || [])
-          .reduce((merged, tag) => {
-            const value = tag['wp:meta_value'];
-            switch (tag['wp:meta_key']) {
-              case '_aioseop_description':
-                merged.description = value;
-                break;
-              case '_aioseop_title':
-                merged.title = value;
-                break;
-              case '_aioseop_keywords':
-                merged.keywords = value.split(/\s*,\s*/);
-                break;
-              default:
-                break;
-            }
-            return merged;
-          }, {});
+        const tags = getTags(post);
+        const meta = getMeta(post);
 
-
-        const raw = post.content || post['content:encoded'].replace(/\[\/?markdown\]/g, '');
+        const raw =
+          post.content ||
+          post['content:encoded'].replace(/\[\/?markdown\]/g, '');
         const { markdown, images } = await toMarkdown(raw);
-
-        // console.log(`${post.title} -> ${post.title}.markdown`);
 
         merged.push({
           author: (authorsLookup[author] || { name: author }).name,
@@ -141,11 +134,11 @@ export async function parsePosts(input: Object, authors: Author[], tagName = 'it
           slug: post['wp:post_name'],
           tags: Array.from(tags),
           title: post.title,
-          ...(meta && Object.keys(meta).length > 0 ? { meta } : {})
+          ...(meta && Object.keys(meta).length > 0 ? { meta } : {}),
         });
       }
     })
-  )
+  );
 
   return merged;
 }

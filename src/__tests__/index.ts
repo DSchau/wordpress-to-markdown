@@ -1,5 +1,3 @@
 import { addjsToCodeFence } from '../util/to-markdown';
 
-test('it does something', () => {
-
-});
+test('it does something', () => {});

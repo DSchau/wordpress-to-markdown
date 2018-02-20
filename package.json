@@ -3,8 +3,12 @@
   "version": "1.0.0",
   "main": "dist/index.js",
   "author": "Dustin Schau <dustinschau@gmail.com> (https://dustinschau.com)",
+  "contributors": [
+    "Jake Partusch <jakepartusch@gmail.com>"
+  ],
   "license": "MIT",
   "scripts": {
+    "precommit": "lint-staged",
     "build": "tsc --project tsconfig.build.json",
     "postbuild": "node dist/cli.js",
     "test": "npm run test:unit && npm run test:e2e",
@@ -14,6 +18,7 @@
   "dependencies": {
     "@types/xml2js": "~0.4.2",
     "axios": "^0.17.1",
+    "cheerio": "~1.0.0-rc.2",
     "date-fns": "~1.29.0",
     "globby": "~7.1.1",
     "mkdirp-promise": "~5.0.1",
@@ -31,9 +36,18 @@
     "@types/jest": "~21.1.9",
     "@types/node": "~8.5.2",
     "gray-matter": "~3.1.1",
+    "husky": "~0.14.3",
     "jest": "~22.0.4",
     "jest-preset-typescript": "~1.0.1",
+    "lint-staged": "~6.1.1",
+    "prettier": "~1.10.2",
     "ts-jest": "~22.0.0",
     "typescript": "~2.6.2"
+  },
+  "lint-staged": {
+    "src/**/*.ts": [
+      "prettier --write",
+      "git add"
+    ]
   }
 }

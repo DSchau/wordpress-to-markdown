@@ -6,80 +6,57 @@ import axios from 'axios';
 import * as globby from 'globby';
 
 import { WORDPRESS_UPLOAD_PATH } from '../constants';
+import { template } from '../util';
+
 import { Post } from '../interfaces';
 
-const replace = str => str.replace(/["']/g, '').trim();
-
-const writeArr = (arr: string[], key = 'tags', spaces = 2): string => {
-  if (!arr || arr.length === 0) {
-    return '';
-  }
-  return `
-${key}:
-${arr
-  .map(tag => `${new Array(spaces).join(' ')} - "${replace(tag)}"`).join('\n')}
-  `.trim();
-};
-
-const metadata = (post: Post): string => {
-  return `
-${`
-author: ${post.author}
-title: "${replace(post.title)}"
-date: ${new Date(post.date).toJSON()}
-category: ${post.category}
-slug: ${post.slug}
-${writeArr(post.tags)}
-${post.meta ? `
-meta:
-  description: "${replace(post.meta.description || post.title)}"
-  ${writeArr(post.meta.keywords || [], 'keywords', 4)}
-` : ''}
-`}
-  `.trim().replace(/\n+/g, '\n');
-}
-
-const template = (post: Post): string => `
----
-${metadata(post)}
----
-
-${post.markdown}
-`.trim() + '\n';
-
 export async function writePost(post: Post, base: string): Promise<any> {
-  const [day, month, year] = format(new Date(post.date), 'DD MM YYYY').split(' ');
+  const [day, month, year] = format(new Date(post.date), 'DD MM YYYY').split(
+    ' '
+  );
   const filePath = path.join(base, `${year}-${month}-${day}-${post.slug}.md`);
   return fs.writeFile(filePath, template(post), 'utf8');
 }
 
 export async function writeImages(posts: Post[], base: string): Promise<any> {
   const imageBase = path.join(base, 'images');
-  const cached = await globby(imageBase)
-    .then(files => files.reduce((fileObj, file) => {
-      const fileName = file.split(imageBase).pop().slice(1);
+  const cached = await globby(imageBase).then(files =>
+    files.reduce((fileObj, file) => {
+      const fileName = file
+        .split(imageBase)
+        .pop()
+        .slice(1);
       fileObj[fileName] = true;
       return fileObj;
-    }, {}));
+    }, {})
+  );
 
   return await Promise.all(
     posts.map(({ images }) => {
-      const nonCachedImages = images
-        .filter(image => !cached[image]);
+      const nonCachedImages = images.filter(image => !cached[image]);
 
       return Promise.all(
-        nonCachedImages
-          .map(image => {
-            const url = `${WORDPRESS_UPLOAD_PATH}${image}`;
-            const dest = path.join(imageBase, image.split('/').slice(0, -1).join('/'));
-            return mkdir(dest)
-              .then(() => {
-                return axios.get(url, { responseType: 'arraybuffer' })
-                  .then(response => {
-                    return fs.writeFile(path.join(imageBase, image), response.data, 'binary');
-                  })
+        nonCachedImages.map(image => {
+          const url = `${WORDPRESS_UPLOAD_PATH}${image}`;
+          const dest = path.join(
+            imageBase,
+            image
+              .split('/')
+              .slice(0, -1)
+              .join('/')
+          );
+          return mkdir(dest).then(() => {
+            return axios
+              .get(url, { responseType: 'arraybuffer' })
+              .then(response => {
+                return fs.writeFile(
+                  path.join(imageBase, image),
+                  response.data,
+                  'binary'
+                );
               });
-          })
+          });
+        })
       );
     })
   );
@@ -91,12 +68,9 @@ export async function writePosts(posts: Post[], basePath = 'output') {
 
   await mkdir(postsBase);
 
-  await writeImages(posts, base);
+  await writeImages(posts, postsBase);
 
   console.log('Wrote all images');
 
-  await Promise.all(
-    posts
-      .map(post => writePost(post, postsBase))
-  );
+  await Promise.all(posts.map(post => writePost(post, postsBase)));
 }

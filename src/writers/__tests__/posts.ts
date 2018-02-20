@@ -4,7 +4,13 @@ import * as matter from 'gray-matter';
 import { writePost } from '../posts';
 
 import { Post } from '../../interfaces';
-import { author, content, date, slug, title } from '../__fixtures__/sample-post';
+import {
+  author,
+  content,
+  date,
+  slug,
+  title,
+} from '../__fixtures__/sample-post';
 
 let post: Post;
 let mockWriteFile: jest.Mock<Function>;
@@ -16,7 +22,7 @@ beforeEach(() => {
     content,
     date,
     slug,
-    title
+    title,
   };
 });
 

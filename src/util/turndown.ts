@@ -5,11 +5,10 @@ const service = new Turndown({
   bulletListMarker: '-',
   codeBlockStyle: 'fenced',
   headingStyle: 'atx',
-  hr: '___'
+  hr: '___',
 });
 
-const escape = str => str
-  .replace(/\\([-_`\[\]])/g, '$1');
+const escape = str => str.replace(/\\([-_`\[\]])/g, '$1');
 
 // TODO: it seems like code blocks may be unescaped improperly
 service.addRule('code-fencing', {
@@ -21,15 +20,16 @@ service.addRule('code-fencing', {
       return [
         '',
         lang === null ? '<!-- TODO: Add language to code block -->' : '',
-        '```' + (lang === null ? '' : lang), trimmed, '```',
-        ''
-      ]
-        .join('\n');
+        '```' + (lang === null ? '' : lang),
+        trimmed,
+        '```',
+        '',
+      ].join('\n');
     }
-    return ['`', trimmed, '\`'].join('');
-  }
+    return ['`', trimmed, '`'].join('');
+  },
 });
 
 service.use(githubFlavoredMarkdown);
 
-export { service as turndown }
+export { service as turndown };
