@@ -40,6 +40,8 @@ export async function toMarkdown(html: string): Promise<MarkdownResult> {
     commonmark: false,
     footnotes: true,
     pedantic: true,
+    rule: '_',
+    ruleSpaces: false,
   });
 
   const $ = cheerio.load(html);
