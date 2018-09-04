@@ -24,7 +24,7 @@ test('it translates html to markdown', async () => {
 </ul>
 
 <hr>
-  `)
+  `).then(result => result.markdown)
   ).toBe(
     `
 # Hello World
