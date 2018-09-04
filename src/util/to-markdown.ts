@@ -18,7 +18,7 @@ const escape = str => str.replace(/\\([-_`\[\]])/g, '$1');
 /*
  * This is a pretty naive approach of detecting markdown
  * It works by splitting and if any line contains a markdown header (#)
- * code fenced block, or seperator
+ * code fenced block, or separator
  */
 export function isMarkdown(html: string): boolean {
   return html.split('\n').some(line => {
