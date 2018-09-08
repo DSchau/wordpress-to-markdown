@@ -121,7 +121,7 @@ export async function parsePosts(
         const raw =
           post.content ||
           post['content:encoded'].replace(/\[\/?markdown\]/g, '');
-        const { markdown, images } = await toMarkdown(raw);
+        const { markdown, images, addjsReplacements } = await toMarkdown(raw);
 
         merged.push({
           author: (authorsLookup[author] || { name: author }).name,
@@ -129,6 +129,7 @@ export async function parsePosts(
           raw,
           markdown,
           images,
+          addjsReplacements,
           date: new Date(post.pubDate).toISOString(),
           link: post.link,
           slug: post['wp:post_name'],

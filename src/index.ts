@@ -23,6 +23,12 @@ export async function parse(input: string): Promise<any> {
   const posts = await parsePosts(base, authors);
   const presentations = await parsePresentations(base, authors);
 
+  const replacements =
+    posts.reduce((pv, cv) => pv + cv.addjsReplacements, 0) +
+    presentations.reduce((pv, cv) => pv + cv.addjsReplacements, 0);
+
+  console.log('total addjsReplacements: ' + replacements);
+
   return {
     authors,
     posts,

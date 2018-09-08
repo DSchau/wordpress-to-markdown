@@ -11,6 +11,22 @@ const service = new Turndown({
 
 const escape = str => str.replace(/\\([-_`\[\]])/g, '$1');
 
+service.addRule('old-gh-gist', {
+  filter: ['div'],
+  replacement(content, node) {
+    const replace = node.className === 'gist';
+    let result = '\n\n' + content + '\n\n';
+    if (replace) {
+      const regex = /<a href="([^"]+?)".*?>view raw<\/a>/;
+      let matches = ('' + node.outerHTML).match(regex);
+      const match = matches[1];
+      console.log('Found "view raw" link:' + match);
+      result = '[addjs src="' + match + '"]';
+    }
+    return result;
+  },
+});
+
 // TODO: it seems like code blocks may be unescaped improperly
 service.addRule('code-fencing', {
   filter: ['pre'],
