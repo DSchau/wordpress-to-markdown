@@ -29,7 +29,8 @@ export function isMarkdown(html: string): boolean {
 }
 
 export async function toMarkdown(html: string): Promise<MarkdownResult> {
-  let markdown = escape(turndown.turndown(html.trim()).trim());
+  let content = html.replace(/\n\s*?\n/gi, '<br/><br/>');
+  let markdown = escape(turndown.turndown(content.trim()).trim());
   let addjsReplacements = 0;
   if (hasAddjsLink(markdown)) {
     markdown = markdown.replace('addjs="', 'addjs src="'); //Replace the one occurrence of missing ` src`
