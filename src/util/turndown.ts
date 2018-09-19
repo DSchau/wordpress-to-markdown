@@ -20,7 +20,7 @@ service.addRule('old-gh-gist', {
       const regex = /<a href="([^"]+?)".*?>view raw<\/a>/;
       let matches = ('' + node.outerHTML).match(regex);
       const match = matches[1];
-      console.log('Found "view raw" link:' + match);
+      // console.log('Found "view raw" link:' + match);
       result = '[addjs src="' + match + '"]';
     }
     return result;

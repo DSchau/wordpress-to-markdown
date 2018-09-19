@@ -34,12 +34,7 @@ export async function toMarkdown(html: string): Promise<MarkdownResult> {
   if (hasAddjsLink(markdown)) {
     markdown = markdown.replace('addjs="', 'addjs src="'); //Replace the one occurrence of missing ` src`
     const matches =
-      // TODO: This regex handles everything but the missing "src" problem above
       // Handles " and ', missing closing quotes, no-break space chars
-      // \[(addjs)[\p{Z}]?src=["']([^"'\]]+)["'\]]+
-      //markdown.match(/\[(addjs)[\p{Z}]+src=["']([^"'\\\]]+)["'\\\]]+/g) || [];
-      //markdown.match(/(\\)?\[addjs\s+src="[^"\\]+(["\\\]]+)?/g) || [];
-      //markdown.match(/\[(addjs)[\s|\u00A0]+src=["']([^"'\\\]]+)["'\\\]]+/g) || [];
       // For some reason \p{Z} isn't matching, so use \u00A0 instead
       markdown.match(/\[(addjs)[\s\u00A0]+src=["']([^"'\\\]]+)["'\\\]]+/g) ||
       [];
@@ -133,7 +128,7 @@ function fixUrl(url: string) {
     .replace('github', 'githubusercontent')
     .replace(/\.js(\?file=)?/, '/raw/');
   const replacementUrl = gistUrlMapper[origContentUrl];
-  return replacementUrl ? replacementUrl : origContentUrl;
+  return replacementUrl || origContentUrl;
 }
 
 export const addjsToCodeFence = async (addjs: string): Promise<string> => {
@@ -149,6 +144,7 @@ export const addjsToCodeFence = async (addjs: string): Promise<string> => {
 
     return '\n' + codeBlock.join('\n') + '\n';
   } catch (e) {
+    console.log('ERROR: Failed to load raw code content');
     console.log('addjs: ' + addjs);
     console.log('src: ' + src);
     console.log('contentUrl: ' + contentUrl);
