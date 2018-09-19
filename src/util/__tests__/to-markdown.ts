@@ -40,6 +40,42 @@ ___
   );
 });
 
+test('it respects existing line breaks in the exported posts', async () => {
+  const result = await toMarkdown(
+    `<strong>Red, red, red, red, green, refactor</strong>
+
+Let's write our test first:`
+  ).then(result => result.markdown);
+  const matches = result.match(/\n\s*?\n/gi) || [];
+  expect(matches.length).toBe(1);
+});
+
+test('double line breaks turns into spacing paragraphs in md', async () => {
+  const result = await toMarkdown(
+    `first line
+
+second line
+    code
+    
+    probably SHOULD leave line breaks in here
+done with code
+
+more
+`
+  ).then(result => result.markdown);
+  //console.log(result);
+  const matches = result.match(/\n\s*?\n/gi) || [];
+  expect(matches.length).toBe(3);
+});
+
+test('double br breaks turns into spacing paragraphs in md', async () => {
+  expect(
+    await toMarkdown(`first line<br/><br/>second line`).then(
+      result => result.markdown
+    )
+  ).toMatch(/first line\s*(\r?\n){2}second line/);
+});
+
 describe('pre translation to code fence', () => {
   test('it translates simple pre block', async () => {
     expect(
