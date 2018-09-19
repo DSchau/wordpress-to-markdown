@@ -6,11 +6,13 @@ import * as cheerio from 'cheerio';
 
 import { turndown } from './turndown';
 import { WORDPRESS_UPLOAD_PATH } from '../constants';
+import { gistUrlMapper } from './gist-mapper';
 
 export interface MarkdownResult {
   markdown: string;
   iframe?: string;
   images: string[];
+  addjsReplacements: number; //Temp value during dev to make sure we're finding all the addjs occurrences
 }
 
 const escape = str => str.replace(/\\([-_`\[\]])/g, '$1');
@@ -18,7 +20,7 @@ const escape = str => str.replace(/\\([-_`\[\]])/g, '$1');
 /*
  * This is a pretty naive approach of detecting markdown
  * It works by splitting and if any line contains a markdown header (#)
- * code fenced block, or seperator
+ * code fenced block, or separator
  */
 export function isMarkdown(html: string): boolean {
   return html.split('\n').some(line => {
@@ -28,18 +30,44 @@ export function isMarkdown(html: string): boolean {
 
 export async function toMarkdown(html: string): Promise<MarkdownResult> {
   let markdown = escape(turndown.turndown(html.trim()).trim());
+  let addjsReplacements = 0;
   if (hasAddjsLink(markdown)) {
+    markdown = markdown.replace('addjs="', 'addjs src="'); //Replace the one occurrence of missing ` src`
     const matches =
-      markdown.match(/(\\)?\[addjs\s*src="[^"\\]+(["\\\]]+)?/g) || [];
+      // Handles " and ', missing closing quotes, no-break space chars
+      // For some reason \p{Z} isn't matching, so use \u00A0 instead
+      markdown.match(/\[(addjs)[\s\u00A0]+src=["']([^"'\\\]]+)["'\\\]]+/g) ||
+      [];
+    //
+    let expecting = 0;
+    let expectedMatches = '';
+
+    for (let match of markdown.match(/addjs.{50}/g) || []) {
+      expecting++;
+      expectedMatches = expectedMatches + match + '\n';
+    }
+
+    let i = 0;
+
     for (let match of matches) {
       markdown = markdown.replace(match, await addjsToCodeFence(match));
+      i++;
     }
+
+    if (expecting != i) {
+      console.log('Expected ' + expecting + ' but matched ' + i);
+      console.log(expectedMatches);
+    }
+
+    addjsReplacements = i;
   }
 
   const remark = new Remark().data(`settings`, {
     commonmark: false,
     footnotes: true,
     pedantic: true,
+    rule: '_',
+    ruleSpaces: false,
   });
 
   const $ = cheerio.load(html);
@@ -62,6 +90,7 @@ export async function toMarkdown(html: string): Promise<MarkdownResult> {
     }),
     iframe: Array.from(frames).shift() as string,
     images,
+    addjsReplacements: addjsReplacements,
   };
 }
 
@@ -88,33 +117,38 @@ function getSrcFromAddJs(addjs: string) {
   if (src) {
     return src
       .pop()
-      .replace(/["\\\]]/g, '')
+      .replace(/["'\\\]]/g, '')
       .trim();
   }
   return '';
 }
 
-export const addjsToCodeFence = async (addjs: string): Promise<string> => {
-  const src = getSrcFromAddJs(addjs);
-  const contentUrl = src
+function fixUrl(url: string) {
+  const origContentUrl = url
     .replace('github', 'githubusercontent')
     .replace(/\.js(\?file=)?/, '/raw/');
+  const replacementUrl = gistUrlMapper[origContentUrl];
+  return replacementUrl || origContentUrl;
+}
+
+export const addjsToCodeFence = async (addjs: string): Promise<string> => {
+  const src = getSrcFromAddJs(addjs);
+  const contentUrl = fixUrl(src);
   try {
     const response = await axios.get(contentUrl);
     const language = getLanguage(src);
-    return (
-      '\n' +
-      [
-        '',
-        !language && '<!-- TODO: Add language to code block -->',
-        '```' + language,
-        response.data,
-        '```',
-        '',
-      ].join('\n') +
-      '\n'
-    );
+    const codeBlock = ['', '```' + language, response.data, '```', ''];
+    if (!language) {
+      codeBlock.push('<!-- TODO: Add language to code block above -->');
+    }
+
+    return '\n' + codeBlock.join('\n') + '\n';
   } catch (e) {
+    console.log('ERROR: Failed to load raw code content');
+    console.log('addjs: ' + addjs);
+    console.log('src: ' + src);
+    console.log('contentUrl: ' + contentUrl);
+    console.log('Failed to get ' + contentUrl);
     return [
       '',
       '<!-- TODO: Replace with code snippet manually pulled from Github -->',

@@ -16,4 +16,5 @@ export interface Post {
   title: string; // title
   tags: string[];
   meta?: Partial<Meta>;
+  addjsReplacements: number; //Temp value during dev to make sure we're finding all the addjs occurrences
 }

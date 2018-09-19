@@ -42,7 +42,12 @@ export async function parsePresentations(
         const raw =
           presentation.content ||
           presentation['content:encoded'].replace(/\[\/?markdown\]/g, '');
-        const { markdown, iframe, images } = await toMarkdown(raw);
+        const {
+          markdown,
+          iframe,
+          images,
+          addjsReplacements,
+        } = await toMarkdown(raw);
 
         merged.push({
           author: (authorsLookup[author] || { name: author }).name,
@@ -50,6 +55,7 @@ export async function parsePresentations(
           raw,
           markdown,
           images,
+          addjsReplacements,
           iframe: iframe,
           date: new Date(presentation.pubDate).toISOString(),
           link: presentation.link,

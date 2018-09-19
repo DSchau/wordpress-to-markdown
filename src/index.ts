@@ -23,6 +23,19 @@ export async function parse(input: string): Promise<any> {
   const posts = await parsePosts(base, authors);
   const presentations = await parsePresentations(base, authors);
 
+  // This is here to help verify we have processed all of the [addjs] markup in the export file.
+  const replacements =
+    posts.reduce(
+      (prevCount, currentCount) => prevCount + currentCount.addjsReplacements,
+      0
+    ) +
+    presentations.reduce(
+      (prevCount, currentCount) => prevCount + currentCount.addjsReplacements,
+      0
+    );
+
+  console.log('total addjsReplacements: ' + replacements);
+
   return {
     authors,
     posts,

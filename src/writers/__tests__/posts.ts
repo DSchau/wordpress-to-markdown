@@ -39,8 +39,8 @@ test('it adds frontmatter to the markdown', async () => {
 });
 
 test('it writes correct folder', async () => {
-  await writePost(post, '1234fakepath');
+  await writePost(post, 'fake/posts/path');
 
   const [filePath] = mockWriteFile.mock.calls.pop();
-  expect(filePath).toMatch(`2017/12-20-${slug}`);
+  expect(filePath).toMatch(`fake/posts/path/2017-12-20-${slug}`);
 });

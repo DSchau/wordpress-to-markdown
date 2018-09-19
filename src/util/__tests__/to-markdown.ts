@@ -1,4 +1,5 @@
 import { isMarkdown, toMarkdown, addjsToCodeFence } from '../to-markdown';
+import { old_style_gist_block_content } from '../__fixtures__/sample-blocks';
 
 test('it detects markdown', () => {
   [
@@ -24,7 +25,7 @@ test('it translates html to markdown', async () => {
 </ul>
 
 <hr>
-  `)
+  `).then(result => result.markdown)
   ).toBe(
     `
 # Hello World
@@ -33,7 +34,9 @@ test('it translates html to markdown', async () => {
 -   Item Two
 
 ___
-  `.trim()
+  `
+      .trim()
+      .concat('\n')
   );
 });
 
@@ -46,7 +49,7 @@ alert('hello world');
 
 alert('hi');
 </pre>
-    `)
+    `).then(result => result.markdown)
     ).toBe(
       `
 \`\`\`
@@ -66,7 +69,7 @@ import groovy.xml.MarkupBuilder
 
 def xml = new MarkupBuilder()
 </pre>
-    `)
+    `).then(result => result.markdown)
     ).toBe(
       `
 \`\`\`groovy
@@ -84,8 +87,8 @@ def xml = new MarkupBuilder()
 <pre lang="js">
 var a = 'b';
 </pre>
-    `)
-    ).toBe("`var a = 'b';`");
+    `).then(result => result.markdown)
+    ).toBe("`var a = 'b';`\n");
   });
 
   test('addjs', async () => {
@@ -99,7 +102,19 @@ var a = 'b';
     expect(
       await toMarkdown(`
     Angular 1.x: \[addjs src="https://gist.github.com/JakePartusch/50737c37e988759e66b6.js?file=angular-controller.js"\] Angular 2.0: \[addjs src="https://gist.github.com/JakePartusch/d5863172113a92fc493d.js?file=angular2-component.ts"\]
-    `)
+    `).then(result => result.markdown)
     ).toMatchSnapshot();
+  });
+
+  test('it translates old style gist blocks', async () => {
+    const markdown = await toMarkdown(old_style_gist_block_content).then(
+      result => result.markdown
+    );
+    expect(markdown).toContain('Text before gist with');
+    expect(markdown).toContain('div that should not be replaced');
+    expect(markdown).toContain(
+      '    class LocalPaymentService implements PaymentService {'
+    );
+    expect(markdown).not.toContain('5672473'); //gist id
   });
 });
