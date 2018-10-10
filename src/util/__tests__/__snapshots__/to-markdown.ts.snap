@@ -1,11 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`pre translation to code fence addjs 1`] = `
-"\`\`\`
-    angular.module(‘example’)
+"
+
+\`\`\`js
+angular.module(‘example’)
 	.controller(‘ExampleCtrl’, function() {
 });
-  \`\`\`"
+\`\`\`
+
+"
 `;
 
 exports[`pre translation to code fence it translates addjs links 1`] = `
@@ -26,4 +30,13 @@ exports[`pre translation to code fence it translates addjs links 1`] = `
 
 export class Example {}
   \`\`\`"
+`;
+
+exports[`pre translation to code fence it translates pre block with language 1`] = `
+"\`\`\`groovy
+import groovy.xml.MarkupBuilder  
+  
+def xml = new MarkupBuilder()
+\`\`\`
+"
 `;

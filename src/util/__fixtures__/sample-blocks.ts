@@ -35,3 +35,11 @@ export const old_style_gist_block_content =
   ' </div>' +
   '</div>' +
   'Text after gist';
+
+// Taken from 2017-12-05-android-architecture-components
+export const sample_inline_pre = `
+To get started with adding ViewModel, you must first add:
+<pre lang="”java”">implementation "android.arch.lifecycle:extensions:1.0.0"
+
+</pre>
+to your application build.gradle file.`;

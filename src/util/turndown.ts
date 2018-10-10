@@ -31,19 +31,35 @@ service.addRule('old-gh-gist', {
 service.addRule('code-fencing', {
   filter: ['pre'],
   replacement(content, node) {
+    const contentBeforeEscape = content;
+    console.log('Content before escape');
+    console.log(contentBeforeEscape);
     const trimmed = escape(content ? content.trim() : '');
+    console.log('Content after escape (and trim)');
+    console.log(trimmed);
+    let result;
+    // Surround with single or triple ticks based on if it has a new line in the content
     if (trimmed.match('\n')) {
+      console.log('Matched new line');
       const lang = node.getAttribute('lang');
-      return [
+      result = [
+        '',
         '',
         lang === null ? '<!-- TODO: Add language to code block -->' : '',
         '```' + (lang === null ? '' : lang),
         trimmed,
         '```',
         '',
+        '',
       ].join('\n');
+    } else {
+      result = ['`', trimmed, '`'].join('');
     }
-    return ['`', trimmed, '`'].join('');
+
+    console.log('Final PRE code-fencing result');
+    console.log(result);
+
+    return result;
   },
 });
 
