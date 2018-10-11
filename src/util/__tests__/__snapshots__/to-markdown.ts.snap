@@ -34,9 +34,8 @@ export class Example {}
 
 exports[`pre translation to code fence it translates pre block with language 1`] = `
 "\`\`\`groovy
-import groovy.xml.MarkupBuilder  
-  
-def xml = new MarkupBuilder()
+import groovy_xml_MarkupBuilder
+def xml = new MarkupBuilder
 \`\`\`
 "
 `;

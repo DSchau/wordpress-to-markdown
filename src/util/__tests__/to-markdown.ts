@@ -87,7 +87,7 @@ test('double br breaks turns into spacing paragraphs in md', async () => {
 });
 
 describe('pre translation to code fence', () => {
-  test('it translates simple pre block', async () => {
+  test('it translates simple pre block WITHOUT a language', async () => {
     const content = `
 <pre>
 alert('hello world');
@@ -95,31 +95,32 @@ alert('hello world');
 alert('hi');
 </pre>
 `;
+    /*
+        remark stringify treats ``` w/o a lang differently, strips the ``` replaces with indents
+       */
     expect(await toMarkdown(content).then(extractMarkdown)).toBe(
-      `
-<!-- TODO: Add language to code block -->
-\`\`\`
-alert('hello world');
+      `<!-- TODO: Add language to code block -->
 
-alert('hi');
-\`\`\`
-
-`.trim()
+    alert('hello world');  
+      
+    alert('hi');
+`
     );
   });
 
   test('it translates pre block with language', async () => {
-    const content = `
-<pre lang="groovy">
-import groovy.xml.MarkupBuilder
+    const content =
+      '<pre lang="groovy">\n' +
+      'import groovy_xml_MarkupBuilder\n' +
+      'def xml = new MarkupBuilder' +
+      '</pre>';
+    const markdown = await toMarkdown(content).then(extractMarkdown);
+    // basic check to make sure the lang as added after the ```
+    expect(markdown).toMatch(
+      /```groovy\nimport groovy.xml.MarkupBuilder\s*?\ndef xml = new MarkupBuilder\s*?\n```/
+    );
 
-def xml = new MarkupBuilder()
-</pre>
-`;
-
-    expect(
-      await toMarkdown(content).then(result => result.markdown)
-    ).toMatchSnapshot();
+    expect(markdown).toMatchSnapshot();
   });
 
   test('it does _not_ apply code fence to a block without a new line', async () => {
