@@ -12,13 +12,11 @@ angular.module(‘example’)
 "
 `;
 
-exports[`pre translation to code fence it translates addjs links 1`] = `
-"Angular 1.x: \\\\\`\`\`
-    angular.module(‘example’)
-	.controller(‘ExampleCtrl’, function() {
-});
-  \`\`\` Angular 2.0: \\\\\`\`\`
-    import {Component, View} from 'angular2/angular2';
+exports[`pre translation to code fence addjs2 1`] = `
+"
+
+\`\`\`ts
+import {Component, View} from 'angular2/angular2';
 
 @Component({
   selector: 'example'
@@ -29,7 +27,36 @@ exports[`pre translation to code fence it translates addjs links 1`] = `
 })
 
 export class Example {}
-  \`\`\`"
+\`\`\`
+
+"
+`;
+
+exports[`pre translation to code fence it translates addjs links 1`] = `
+"Angular 1.x: 
+
+\`\`\`js
+angular.module(‘example’)
+	.controller(‘ExampleCtrl’, function() {
+});
+\`\`\`
+
+ Angular 2.0: 
+
+\`\`\`ts
+import {Component, View} from 'angular2/angular2';
+
+@Component({
+  selector: 'example'
+})
+
+@View({
+  templateUrl: './components/example/example.html'
+})
+
+export class Example {}
+\`\`\`
+"
 `;
 
 exports[`pre translation to code fence it translates pre block with language 1`] = `

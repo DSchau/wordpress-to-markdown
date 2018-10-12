@@ -1,13 +1,11 @@
 import { isMarkdown, toMarkdown, addjsToCodeFence } from '../to-markdown';
 import {
   old_style_gist_block_content,
-  sample_inline_pre,
+  sample_single_line_pre,
 } from '../__fixtures__/sample-blocks';
 
-const turnDownBr = '\n  '; // https://github.com/domchristie/turndown/issues/160#issuecomment-238814993
-
 const extractMarkdown = ({ markdown }) => {
-  console.log(markdown);
+  //console.log(markdown);
   return markdown;
 };
 
@@ -123,20 +121,22 @@ alert('hi');
     expect(markdown).toMatchSnapshot();
   });
 
-  test('it does _not_ apply code fence to a block without a new line', async () => {
+  test('it does _not_ apply code fence to a block without a new line (if there is no lang)', async () => {
     expect(
       await toMarkdown(`
-<pre lang="js">
+<pre>
 var a = 'b';
 </pre>
     `).then(result => result.markdown)
     ).toBe("`var a = 'b';`\n");
   });
 
-  test('it ensures a new line both before and after code fence', async () => {
-    expect(await toMarkdown(sample_inline_pre).then(extractMarkdown)).toBe(
+  test('it ensures single line pre elements with a lang are code fenced', async () => {
+    expect(await toMarkdown(sample_single_line_pre).then(extractMarkdown)).toBe(
       'To get started with adding ViewModel, you must first add:' +
-        '\n\n`implementation "android.arch.lifecycle:extensions:1.0.0"`\n\n' +
+        '\n\n```java\n' +
+        'implementation "android.arch.lifecycle:extensions:1.0.0"\n' +
+        '```\n\n' +
         'to your application build.gradle file.\n'
     );
   });
@@ -145,6 +145,14 @@ var a = 'b';
     const result = await addjsToCodeFence(
       '[addjs src="https://gist.github.com/JakePartusch/50737c37e988759e66b6.js?file=angular-controller.js"\\]'
     );
+    expect(result).toMatchSnapshot();
+  });
+
+  test('addjs2', async () => {
+    const content = `
+    Angular 1.x: \[addjs src="https://gist.github.com/JakePartusch/50737c37e988759e66b6.js?file=angular-controller.js"\] Angular 2.0: \[addjs src="https://gist.github.com/JakePartusch/d5863172113a92fc493d.js?file=angular2-component.ts"\]
+    `;
+    const result = await addjsToCodeFence(content);
     expect(result).toMatchSnapshot();
   });
 
