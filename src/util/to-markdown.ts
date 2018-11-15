@@ -29,8 +29,9 @@ export function isMarkdown(html: string): boolean {
 }
 
 export async function toMarkdown(html: string): Promise<MarkdownResult> {
-  let content = html.replace(/\n\s*?\n/gi, '<br/><br/>');
+  let content = html.replace(/[\s\t]*?\n[\s\t]*?\n/gi, '<br/><br/>');
   let markdown = escape(turndown.turndown(content.trim()).trim());
+
   let addjsReplacements = 0;
   if (hasAddjsLink(markdown)) {
     markdown = markdown.replace('addjs="', 'addjs src="'); //Replace the one occurrence of missing ` src`
@@ -77,6 +78,7 @@ export async function toMarkdown(html: string): Promise<MarkdownResult> {
   const frames = $('iframe, object').map(function(i, el) {
     return $(this).attr('src');
   });
+
   const ast = map(remark.parse(markdown), node => {
     if (node.type === 'image' && node.url.indexOf(WORDPRESS_UPLOAD_PATH) > -1) {
       const imagePath = node.url.split(WORDPRESS_UPLOAD_PATH).pop();

@@ -1,5 +1,13 @@
 import { isMarkdown, toMarkdown, addjsToCodeFence } from '../to-markdown';
-import { old_style_gist_block_content } from '../__fixtures__/sample-blocks';
+import {
+  old_style_gist_block_content,
+  sample_single_line_pre,
+} from '../__fixtures__/sample-blocks';
+
+const extractMarkdown = ({ markdown }) => {
+  //console.log(markdown);
+  return markdown;
+};
 
 test('it detects markdown', () => {
   [
@@ -77,54 +85,60 @@ test('double br breaks turns into spacing paragraphs in md', async () => {
 });
 
 describe('pre translation to code fence', () => {
-  test('it translates simple pre block', async () => {
-    expect(
-      await toMarkdown(`
+  test('it translates simple pre block WITHOUT a language', async () => {
+    const content = `
 <pre>
 alert('hello world');
 
 alert('hi');
 </pre>
-    `).then(result => result.markdown)
-    ).toBe(
-      `
-\`\`\`
-alert('hello world');
+`;
+    /*
+        remark stringify treats ``` w/o a lang differently, strips the ``` replaces with indents
+       */
+    expect(await toMarkdown(content).then(extractMarkdown)).toBe(
+      `<!-- TODO: Add language to code block -->
 
-alert('hi');
-\`\`\`
-    `.trim()
+    alert('hello world');  
+      
+    alert('hi');
+`
     );
   });
 
   test('it translates pre block with language', async () => {
-    expect(
-      await toMarkdown(`
-<pre lang="groovy">
-import groovy.xml.MarkupBuilder
-
-def xml = new MarkupBuilder()
-</pre>
-    `).then(result => result.markdown)
-    ).toBe(
-      `
-\`\`\`groovy
-import groovy.xml.MarkupBuilder
-
-def xml = new MarkupBuilder()
-\`\`\`
-    `.trim()
+    const content =
+      '<pre lang="groovy">\n' +
+      'import groovy_xml_MarkupBuilder\n' +
+      'def xml = new MarkupBuilder' +
+      '</pre>';
+    const markdown = await toMarkdown(content).then(extractMarkdown);
+    // basic check to make sure the lang as added after the ```
+    expect(markdown).toMatch(
+      /```groovy\nimport groovy.xml.MarkupBuilder\s*?\ndef xml = new MarkupBuilder\s*?\n```/
     );
+
+    expect(markdown).toMatchSnapshot();
   });
 
-  test('it does _not_ apply code fence to a block without a new line', async () => {
+  test('it does _not_ apply code fence to a block without a new line (if there is no lang)', async () => {
     expect(
       await toMarkdown(`
-<pre lang="js">
+<pre>
 var a = 'b';
 </pre>
     `).then(result => result.markdown)
     ).toBe("`var a = 'b';`\n");
+  });
+
+  test('it ensures single line pre elements with a lang are code fenced', async () => {
+    expect(await toMarkdown(sample_single_line_pre).then(extractMarkdown)).toBe(
+      'To get started with adding ViewModel, you must first add:' +
+        '\n\n```java\n' +
+        'implementation "android.arch.lifecycle:extensions:1.0.0"\n' +
+        '```\n\n' +
+        'to your application build.gradle file.\n'
+    );
   });
 
   test('addjs', async () => {
@@ -134,12 +148,19 @@ var a = 'b';
     expect(result).toMatchSnapshot();
   });
 
-  test('it translates addjs links', async () => {
-    expect(
-      await toMarkdown(`
+  test('addjs2', async () => {
+    const content = `
     Angular 1.x: \[addjs src="https://gist.github.com/JakePartusch/50737c37e988759e66b6.js?file=angular-controller.js"\] Angular 2.0: \[addjs src="https://gist.github.com/JakePartusch/d5863172113a92fc493d.js?file=angular2-component.ts"\]
-    `).then(result => result.markdown)
-    ).toMatchSnapshot();
+    `;
+    const result = await addjsToCodeFence(content);
+    expect(result).toMatchSnapshot();
+  });
+
+  test('it translates addjs links', async () => {
+    const content = `
+    Angular 1.x: \[addjs src="https://gist.github.com/JakePartusch/50737c37e988759e66b6.js?file=angular-controller.js"\] Angular 2.0: \[addjs src="https://gist.github.com/JakePartusch/d5863172113a92fc493d.js?file=angular2-component.ts"\]
+    `;
+    expect(await toMarkdown(content).then(extractMarkdown)).toMatchSnapshot();
   });
 
   test('it translates old style gist blocks', async () => {

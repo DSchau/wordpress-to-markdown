@@ -31,19 +31,27 @@ service.addRule('old-gh-gist', {
 service.addRule('code-fencing', {
   filter: ['pre'],
   replacement(content, node) {
+    const lang = node.getAttribute('lang');
     const trimmed = escape(content ? content.trim() : '');
-    if (trimmed.match('\n')) {
-      const lang = node.getAttribute('lang');
-      return [
+    let result;
+
+    // Surround with single or triple ticks based on if it has a new line in the content or lang attrib
+    if (trimmed.match('\n') || lang) {
+      result = [
+        '',
         '',
         lang === null ? '<!-- TODO: Add language to code block -->' : '',
-        '```' + (lang === null ? '' : lang),
+        '```' + (lang === null ? '' : lang.replace(/”/g, '')),
         trimmed,
         '```',
         '',
+        '',
       ].join('\n');
+    } else {
+      result = ['`', trimmed, '`'].join('');
     }
-    return ['`', trimmed, '`'].join('');
+
+    return result;
   },
 });
 

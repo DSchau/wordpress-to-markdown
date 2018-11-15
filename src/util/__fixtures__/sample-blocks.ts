@@ -35,3 +35,15 @@ export const old_style_gist_block_content =
   ' </div>' +
   '</div>' +
   'Text after gist';
+
+/*
+    Taken from 2017-12-05-android-architecture-components
+    Any pre with a lang should result in a fenced code block,
+    or at minimum, because this pre is on it's on line,
+    it should end up on it's own line (with surrounding empty lines) in the MD
+    NOTE: This example also has ” added to the lang
+ */
+export const sample_single_line_pre = `
+To get started with adding ViewModel, you must first add:
+<pre lang="”java”">implementation "android.arch.lifecycle:extensions:1.0.0"</pre>
+to your application build.gradle file.`;
